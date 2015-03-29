@@ -47,6 +47,7 @@ class MeshTrimmer {
 
     for (int arr = 0; arr < mesh->GetPointData()->GetNumberOfArrays(); arr++) {
       vtkDataArray *old_arr = mesh->GetPointData()->GetArray(arr);
+
       vtkSmartPointer<vtkDataArray> new_arr =
           vtkSmartPointer<vtkDataArray>(old_arr->NewInstance());
       new_arr->SetName(old_arr->GetName());
@@ -55,9 +56,10 @@ class MeshTrimmer {
 
       for (int r = 0; r < remaining.size(); r++) {
         int point = remaining[r];
+
         std::vector<double> curr_values(new_arr->GetNumberOfComponents());
         old_arr->GetTuple(point, &curr_values[0]);
-        new_arr->SetTuple(point, &curr_values[0]);
+        new_arr->SetTuple(r, &curr_values[0]);
       }
 
       new_mesh->GetPointData()->AddArray(new_arr);

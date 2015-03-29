@@ -11,14 +11,29 @@
 
 namespace {
 
-const char *kInputFile = "poly_mesh.vtk";
+const char *kInputFile = "/home/linyufly/GitLab/RidgeExtraction/watershed_ridges.vtk";
 const char *kOutputFile = "trimmed_mesh.vtk";
 
+const double kDistance = 1.53;
+
+double square(double value) {
+  return value * value;
+}
+
 struct SimpleJudge {
-  bool operator () (int a) const {
-    return a < 100000;
+  static vtkPolyData *mesh_;
+
+  bool operator () (int point) const {
+    double coord[3];
+    mesh_->GetPoints()->GetPoint(point, coord);
+
+    return square(coord[0]) + square(coord[1]) > square(kDistance)
+           || coord[2] < 0.15 && square(coord[0]) + square(coord[1]) > square(kDistance * 0.8)
+           || coord[2] > 3.05 && square(coord[0]) + square(coord[1]) > square(kDistance * 0.95);
   }
 };
+
+vtkPolyData *SimpleJudge::mesh_ = NULL;
 
 }
 
@@ -33,6 +48,8 @@ void trim_test() {
   vtkSmartPointer<vtkPolyData> mesh =
       vtkSmartPointer<vtkPolyData>::New();
   mesh->DeepCopy(reader->GetOutput());
+
+  SimpleJudge::mesh_ = mesh;
 
   vtkSmartPointer<vtkPolyData> trimmed =
       vtkSmartPointer<vtkPolyData>(MeshTrimmer<SimpleJudge>::trim(mesh));
